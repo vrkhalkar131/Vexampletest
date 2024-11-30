@@ -1,0 +1,327 @@
+Here’s a comprehensive guide to **Kubernetes** covering key concepts like **pods**, **replica sets**, **services**, **deployments**, and related commands.
+
+---
+
+### **1. What is Kubernetes?**
+Kubernetes (K8s) is an open-source container orchestration platform that automates the deployment, scaling, and management of containerized applications. It works with various container tools like Docker to manage workloads and services.
+
+---
+
+### **2. Basic Concepts in Kubernetes**
+- **Pod**: The smallest and simplest unit in Kubernetes, typically representing a single instance of a running application.
+- **ReplicaSet**: Ensures a specified number of pod replicas are running at all times.
+- **Deployment**: Manages the deployment of pods and replica sets, and provides features like rolling updates and rollback.
+- **Service**: Provides a stable endpoint to access a set of pods, abstracting pod IP addresses.
+- **Namespace**: Virtual clusters within a Kubernetes cluster to isolate resources.
+
+---
+
+### **3. Kubernetes Commands**
+
+Kubernetes commands are executed using the `kubectl` CLI tool. Some basic commands include:
+
+- **Check Kubernetes Cluster Version**:
+  ```bash
+  kubectl version
+  ```
+
+- **Get Cluster Information**:
+  ```bash
+  kubectl cluster-info
+  ```
+
+- **List Nodes in the Cluster**:
+  ```bash
+  kubectl get nodes
+  ```
+
+- **Get Pods**:
+  ```bash
+  kubectl get pods
+  ```
+
+- **Get Services**:
+  ```bash
+  kubectl get services
+  ```
+
+- **Describe Pods/Services/Nodes**:
+  ```bash
+  kubectl describe pod <pod_name>
+  kubectl describe svc <service_name>
+  kubectl describe node <node_name>
+  ```
+
+- **Check Logs of a Pod**:
+  ```bash
+  kubectl logs <pod_name>
+  ```
+
+- **Execute a Command Inside a Running Pod**:
+  ```bash
+  kubectl exec -it <pod_name> -- /bin/bash
+  ```
+
+---
+
+### **4. Creating Kubernetes Resources**
+
+#### **Pods**
+A **Pod** is the basic execution unit in Kubernetes, typically running one container, but can run multiple containers.
+
+- **Create Pod** using a YAML file (`pod.yaml`):
+  ```yaml
+  apiVersion: v1
+  kind: Pod
+  metadata:
+    name: mypod
+  spec:
+    containers:
+      - name: mycontainer
+        image: nginx
+  ```
+
+  Create the pod:
+  ```bash
+  kubectl apply -f pod.yaml
+  ```
+
+- **Create Pod** using `kubectl` directly:
+  ```bash
+  kubectl run mypod --image=nginx --restart=Never
+  ```
+
+---
+
+#### **ReplicaSet**
+A **ReplicaSet** ensures that a specific number of identical pods are running at any given time. It is often managed by a **Deployment**.
+
+- **Create ReplicaSet** (`replicaset.yaml`):
+  ```yaml
+  apiVersion: apps/v1
+  kind: ReplicaSet
+  metadata:
+    name: my-replicaset
+  spec:
+    replicas: 3
+    selector:
+      matchLabels:
+        app: nginx
+    template:
+      metadata:
+        labels:
+          app: nginx
+      spec:
+        containers:
+          - name: nginx
+            image: nginx
+  ```
+
+  Apply the ReplicaSet:
+  ```bash
+  kubectl apply -f replicas.yaml
+  ```
+
+- **Scale ReplicaSet**:
+  ```bash
+  kubectl scale replicaset my-replicaset --replicas=5
+  ```
+
+---
+
+#### **Deployment**
+A **Deployment** manages the creation and rolling updates of ReplicaSets. It offers declarative updates, rollbacks, and scaling.
+
+- **Create Deployment** (`deployment.yaml`):
+  ```yaml
+  apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: my-deployment
+  spec:
+    replicas: 3
+    selector:
+      matchLabels:
+        app: nginx
+    template:
+      metadata:
+        labels:
+          app: nginx
+      spec:
+        containers:
+          - name: nginx
+            image: nginx
+  ```
+
+  Apply the Deployment:
+  ```bash
+  kubectl apply -f deployment.yaml
+  ```
+
+- **Scaling Deployment**:
+  ```bash
+  kubectl scale deployment my-deployment --replicas=5
+  ```
+
+- **Rolling Update**: Update the deployment with a new image version.
+  ```bash
+  kubectl set image deployment/my-deployment nginx=nginx:latest
+  ```
+
+- **Rollback Deployment**:
+  ```bash
+  kubectl rollout undo deployment/my-deployment
+  ```
+
+- **View Deployment Status**:
+  ```bash
+  kubectl rollout status deployment/my-deployment
+  ```
+
+---
+
+### **5. Services**
+A **Service** exposes a set of pods as a network service. Kubernetes services can be of several types:
+- **ClusterIP**: Default, exposes the service within the cluster.
+- **NodePort**: Exposes the service on a specific port on each node.
+- **LoadBalancer**: Exposes the service externally (typically on cloud platforms).
+- **ExternalName**: Maps to an external DNS name.
+
+- **Create Service** (`service.yaml`):
+  ```yaml
+  apiVersion: v1
+  kind: Service
+  metadata:
+    name: my-service
+  spec:
+    selector:
+      app: nginx
+    ports:
+      - protocol: TCP
+        port: 80
+        targetPort: 80
+    type: ClusterIP
+  ```
+
+  Apply the Service:
+  ```bash
+  kubectl apply -f service.yaml
+  ```
+
+- **Expose Pod as Service**:
+  ```bash
+  kubectl expose pod mypod --port=80 --name=my-service --type=ClusterIP
+  ```
+
+- **Expose Deployment as Service**:
+  ```bash
+  kubectl expose deployment my-deployment --type=NodePort --port=80
+  ```
+
+- **List Services**:
+  ```bash
+  kubectl get services
+  ```
+
+- **Describe a Service**:
+  ```bash
+  kubectl describe service my-service
+  ```
+
+---
+
+### **6. Deleting Resources**
+
+To delete Kubernetes resources, use the `kubectl delete` command:
+
+- **Delete a Pod**:
+  ```bash
+  kubectl delete pod mypod
+  ```
+
+- **Delete a ReplicaSet**:
+  ```bash
+  kubectl delete replicaset my-replicaset
+  ```
+
+- **Delete a Deployment**:
+  ```bash
+  kubectl delete deployment my-deployment
+  ```
+
+- **Delete a Service**:
+  ```bash
+  kubectl delete service my-service
+  ```
+
+- **Delete Using YAML**:
+  ```bash
+  kubectl delete -f deployment.yaml
+  ```
+
+---
+
+### **7. Namespaces**
+Namespaces allow you to organize your Kubernetes resources.
+
+- **List Namespaces**:
+  ```bash
+  kubectl get namespaces
+  ```
+
+- **Create a Namespace** (`namespace.yaml`):
+  ```yaml
+  apiVersion: v1
+  kind: Namespace
+  metadata:
+    name: my-namespace
+  ```
+
+  Apply the namespace:
+  ```bash
+  kubectl apply -f namespace.yaml
+  ```
+
+- **Use a Namespace**:
+  ```bash
+  kubectl get pods --namespace=my-namespace
+  ```
+
+---
+
+### **8. Kubectl Autocomplete and Shortcuts**
+
+- **Enable Auto-Completion**:
+  ```bash
+  source <(kubectl completion bash)
+  ```
+
+- **Get Pods with Short Names**:
+  ```bash
+  kubectl get po
+  ```
+
+---
+
+### **Summary of Commands**
+- **Get Resources**:
+  - `kubectl get pods`
+  - `kubectl get deployments`
+  - `kubectl get services`
+- **Create Resources**:
+  - `kubectl apply -f <file>.yaml`
+  - `kubectl run <name> --image=<image>`
+- **Delete Resources**:
+  - `kubectl delete pod <pod_name>`
+  - `kubectl delete deployment <deployment_name>`
+  - `kubectl delete service <service_name>`
+- **Scale Deployments**:
+  - `kubectl scale deployment <deployment_name> --replicas=<count>`
+- **Update Resources**:
+  - `kubectl set image deployment/<deployment_name> <container_name>=<new_image>`
+- **View Resource Status**:
+  - `kubectl describe pod <pod_name>`
+
+---
+
+Kubernetes provides powerful abstractions to manage containerized applications. By using these core concepts and commands, you can deploy, scale, and manage applications effectively.
