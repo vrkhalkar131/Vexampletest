@@ -1,0 +1,1254 @@
+What is Docker?
+
+Docker is open source project that automates the deployment of applications inside software containers by providing an 
+additional layer of abstraction and automation of operating-system level virtualization on Lennox seems 
+
+DOCKER INSTALLATION
+=====================================================================================================================
+Install Docker in CentOS
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Install all the packages needed to install docker
+-------------------------------------------------
+>>  sudo su -
+>>  yum install -y yum-utils device-mapper-persistent-data lvm2
+
+Add docker repo file and install docker community edition
+---------------------------------------------------------
+>>  yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+>>  yum install -y docker-ce   (If you want Enterprise Edition, use 'ee' instead of 'ce'.)
+>>  systemctl enable docker
+>>  systemctl start docker
+
+Verify docker installation
+--------------------------
+>>  docker --version
+>>  docker version
+>>  docker image ls
+>>  docker info
+
+Now exit root and try the same. You will get permission error on unix:///var/run/docker.sock. 
+To fix this :
+>>  sudo su -
+>>  cd /var/run
+>>  ls -la docker*    
+>>  cat /etc/group | grep docker    ===> docker:x:987:       (No user in docker group)
+
+Add user to docker group
+-------------------------
+>>  usermod -a -G docker cloud_user
+>>  cat /etc/group | grep docker    ===> docker:x:987:user   (User 'user' in 'docker' group)
+>>  exit
+>>  docker --version
+>>  docker images
+
+=====================================================================================================================
+2) Scripted way to install Docker in CentOS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+>>  wget -qO- https://get.docker.com | sh
+>>  sudo su -
+>>  usermod -aG docker cloud_user
+>>  systemctl start docker
+>>  systemctl enable docker
+
+=====================================================================================================================
+3) Alternate way to install Docker in CentOS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+>>  sudo su - (Switching to root user for the root privileges)
+
+Uninstall old version (Before installing new version, you should make sure that the old version is removed completely.)
+----------------------
+>>  yum remove -y docker \
+                  docker-client \
+                  docker-client-latest \
+                  docker-common \
+                  docker-latest \
+                  docker-latest-logrotate \
+                  docker-logrotate \
+                  docker-engine
+
+Add docker repo file and install docker
+---------------------------------------
+>>  cd /etc/yum.repos.d/
+>>  vim docker.repo
+
+    [dockerrepo]
+    name=Docker Repository
+    baseurl=https://yum.dockerproject.org/repo/main/centos/7/
+    enabled=1
+    gpgcheck=1
+    gpgkey=https://yum.dockerproject.org/gpg
+
+>>  yum update
+>>  yup install -y docker-engine
+>>  systemctl enable docker
+>>  systemctl start docker
+Note : For Debian/Ubuntu distros, you will be installing docker.io instead of docker-engine.
+
+Verify docker installation
+--------------------------
+>>  docker --version
+>>  docker version
+>>  docker image ls
+>>  docker info
+
+Now exit root and try the same. You will get permission error on unix:///var/run/docker.sock. 
+To fix this :
+>>  sudo su -
+>>  cd /var/run
+>>  ls -la docker*    
+>>  cat /etc/group | grep docker    ===> docker:x:987:       (No user in docker group)
+
+Add user to docker group
+-------------------------
+>>  usermod -a -G docker cloud_user
+>>  cat /etc/group | grep docker    ===> docker:x:987:user   (User 'user' in 'docker' group)
+>>  exit
+>>  docker --version
+>>  docker images
+
+=====================================================================================================================
+4) Alternate way to install Docker in CentOS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+>>  https://github.com/docker/docker-install
+
+=====================================================================================================================
+4) Install Docker in Ubuntu
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+>>  https://github.com/linuxacademy/content-container-essentials-101presentation/blob/master/Docker_Install_Ubuntu.md
+
+=====================================================================================================================
+DOCKER COMMANDS
+~~~~~~~~~~~~~~~
+List All Docker Cmds          >>    docker -h
+Search Images                 >>    docker search <IMAGE>
+List Images                   >>    docker image ls
+                              >>    docker image ls --no-trunc  (displays full docker id)
+Pull Images                   >>    docker image pull <IMAGE>                     
+Inspect Image                 >>    docker image inspect <IMAGE>
+History of Image              >>    docker image history <IMAGE>
+                              >>    docker image history --no-trunc <IMAGE>           (displays full image id)
+                              >>    docker image history --quiet <IMAGE>              (displays image id only)
+                              >>    docker image history --quiet --no-trunc <IMAGE>   (display full id only)
+Remove an Image               >>    docker image rm <IMAGE>
+Remove an Image Forcefully    >>    docker image rm -f <IMAGE>
+            
+=====================================================================================================================
+Container Life Cycle && Image and Container Management
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Create Container                      >>      docker container create --name <CONTAINER_NAME> <IMAGE:TAG>
+Run Container                         >>      docker container run -itd --name <CONTAINER_NAME> <IMAGE:TAG>
+Run Container and Remove after Run    >>      docker container run --rm <IMAGE>
+List Running Containers               >>      docker container ls       
+List All Containers                   >>      docker container ls -a
+List IDs of all Containers            >>      docker container ls -a -q
+Inspect Container                     >>      docker container inspect <CONTAINER_NAME>
+Attach Container                      >>      docker container attach <CONTAINER_NAME>
+Execute cmd on Running Container      >>      docker container exec -it <CONTAINER_NAME> /bin/bash
+Start Container                       >>      docker container start <CONTAINER_NAME>
+Stop Container                        >>      docker container stop <CONTAINER_NAME>
+Stop All Container                    >>      docker container stop `docker ls -a -q`
+List all stopped Containers           >>      docker container ls -a -f status=exited
+List IDs of stopped Containers        >>      docker container ls -a -q -f status=exited
+Restart Container                     >>      docker container restart <CONTAINER_NAME>
+Pause Container                       >>      docker container pause <CONTAINER_NAME>
+Unpause Container                     >>      docker container unpause <CONTAINER_NAME>
+Kill Container                        >>      docker container kill <CONTAINER_NAME>
+Remove Container                      >>      docker container rm <CONTAINER_NAME>
+Remove Running Container              >>      docker container rm -f <CONTAINER_NAME>
+Remove Multiple Container             >>      docker container rm <CN1> <CN2> <CN3>
+Remove All Stopped Container          >>      docker container rm `docker ls -q -f status=exited`
+                                      >>      docker container prune -f
+Remove All Non Running Container      >>      docker container rm `docker ls -a -q`
+Rename Container Name                 >>      docker container rename <CONTAINER_NAME> <NEW_CONTAINER_NAME>
+Log Info from a Container             >>      docker container logs <CONTAINER_NAME>
+
+Run container in interactive mode, conected to terminal and start with bash shell
+---------------------------------------------------------------------------------
+>>  docker container run -it centos:latest /bin/bash     (i => interactive | t => terminal)
+
+Run container in detached mode, conected to terminal and start with bash shell
+------------------------------------------------------------------------------
+>>  docker container run -d centos:latest /bin/bash     (d => detached)
+>>  docker container run -d nginx:latest
+
+Run container with user defined names
+-------------------------------------
+>>  docker container run -d --name=NAME image_name:tag_name
+>>  docker container run -d --name NAME image_name:tag_name
+>>  Eg 1 : docker container run -d --name=Web1 nginx:latest
+>>  Eg 2 : docker container run -d --name Web2 nginx:latest
+
+Restart Container Automatically
+-------------------------------
+Set restart policies for containers, and how that will effect their behavior when the docker service is restarted
+
+>>  no              :   docker container run -d --restart no <IMAGE:TAG>          (default)
+>>  always          :   docker container run -d --restart always <IMAGE:TAG>
+>>  on-failure      :   docker container run -d --restart on-failure <IMAGE:TAG>
+>>  unless-stopped  :   docker container run -d --restart unless-stopped <IMAGE:TAG>
+
+To check this, first run your container and restart your docker service using the following command.
+>>  sudo systemctl restart docker
+
+=====================================================================================================================
+Building Docker Images
+~~~~~~~~~~~~~~~~~~~~~~
+
+Build an image from a container
+-------------------------------
+>>  Run the base image and install all the needed package and exit. Then 
+>>  docker commit -m "commit message" -a "maintainer_id/email" <container_name> <new_image_name:tag_name>
+    
+Build an image using docker file
+--------------------------------
+>>  Write your dockerfile
+>>  docker image build -t <new_image_name:tag_name> .
+    
+Build image and set metadata/label for an image
+---------------------------------------------------
+>>  docker image build -t <IMAGENAME> --label <LABEL>=<VALUE> <DOCKERFILE_LOC>  
+Eg: docker image build -t myimage:v1 --label com.google.version=v1.8 .
+
+Building image by piping the Dockerfile through STDIN
+-----------------------------------------------------
+>>  docker image build -t <NAME>:<TAG> -<<EOF
+    Build instructions
+    EOF
+
+Eg: docker image build -t linuxacademy/nginx:stind --rm -<<EOF
+    FROM nginx:latest
+    VOLUME ["/usr/share/nginx/html/"]
+    EOF
+
+3 ways to Build image using a URL
+---------------------------------
+>>  docker image build -t <NAME>:<TAG> <GIT_URL>#<REF>  (The reference can be a tag or branch.)
+>>  docker image build -t <NAME>:<TAG> <GIT_URL>#:<DIRECTORY> (Directory represent the location of Dockerfile)
+>>  docker image build -t <NAME>:<TAG> <GIT_URL>#<REF>:<DIRECTORY>
+Eg: docker image build -t myweatherapp:v1 https://github.com/linuxacademy/content-weather-app.git#remote-build
+
+Building an image from a zip file
+---------------------------------
+>>  docker image build -t <NAME>:<TAG> - < <FILE>.tar.gz
+>>  docker image build -t myapp:from-tar - < myapp.tar.gz
+
+Different ways for Image Tagging
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+a. While building the docker image
+   >>  docker image build -t <name>:<tag> .
+   >>  docker image build -tag <name>:<tag> .
+b. Add new tag to an image
+   >>  docker image tag <SOURCE_IMAGE>:<TAG> <TARGET_IMAGE>:<TAG>
+   
+=====================================================================================================================
+Build Image Using Multi Stage Build
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Multi Stage build allows as to use multiple images to build a final product. In a multi stage build, we have a single 
+docker file but we are able to go and define multiple images in there to help us build a final image. The first stage 
+is the build stage where we install dependencies, download source code and then compile and test it. The second image 
+thats defined in the dockerfile is the final product.
+
+Environment Setup
+-----------------
+>>  cd docker_images
+>>  mkdir multi-stage-builds
+>>  cd multi-stage-builds
+>>  git clone https://github.com/linuxacademy/content-weather-app.git src
+
+Create the Dockerfile
+---------------------
+vi Dockerfile
+
+# Create an image for the weather-app using multi-stage build
+FROM node AS build
+RUN mkdir -p /var/node/
+ADD src/ /var/node/
+WORKDIR /var/node
+RUN npm install
+
+FROM node:alpine
+ARG VERSION=V1.1
+LABEL org.label-schema.version=$VERSION
+ENV NODE_ENV="production"
+COPY --from=build /var/node /var/node
+WORKDIR /var/node
+EXPOSE 3000
+ENTRYPOINT ["./bin/www"]
+
+Build the image
+---------------
+docker image build -t linuxacademy/weather-app:multi-stage-build --rm --build-arg VERSION=1.5 .
+
+List images to see the size difference
+--------------------------------------
+docker image ls
+
+Create the weather-app container
+--------------------------------
+docker container run -d --name multi-stage-build -p 8087:3000 linuxacademy/weather-app:multi-stage-build
+
+=====================================================================================================================
+Steps to Push your Docker Images to Docker Hub 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Login to Docker Hub Web and Create your Repo
+--------------------------------------------
+>>  https://hub.docker.com/
+>>  Now create your repository in your Docker Hub(Website)
+
+Login to Docker Hub via CLI
+---------------------------
+>>  docker login
+>>  Username: username
+>>  Password: password
+
+Create Repo Tag for the Image
+-----------------------------
+>>  docker image tag image_name:tag username/image_name:tag
+>>  Eg(1) : docker tag 01a0f6853cfc vsathyak/ubuntu_python:v1           (using image_id)
+>>  Eg(1) : docker tag ubuntu/python vsathyak/ubuntu_python:v2          (using image_name)
+>>  Eg(1) : docker tag ubuntu/python:latest vsathyak/ubuntu_python:v3   (using image_name:tag_name)
+
+Pushing Your Image to Docker Hub using CLI
+------------------------------------------
+>>  docker image push username/image_name:tag
+>>  Eg(2) : docker image push vsathyak/ubuntu_python:v1
+>>  Eg(2) : docker image push vsathyak/ubuntu_python:v2
+>>  Eg(2) : docker image push vsathyak/ubuntu_python:v3
+
+Logout from Docker Hub via CLI
+------------------------------
+>> docker logout
+
+=====================================================================================================================
+Redirection - Port Bindings(Publishing Ports)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+>>  -p, --publish     : Used to list a published container's port to the host.
+>>  -P, --publish-all : Used tp publish all exposed ports to random ports.
+
+>>  docker container run -P image_name
+Eg: docker container run -d --name Web1 -P nginx:latest  (-P port range -> 32768 to 65000). 
+    In this case all exposed ports get publishedto random ports.
+
+>>  docker container run -p [HOST_PORT]:[CONTAINER_PORT] image_name
+Eg: docker container run -d --name Web2 -p 8080:80 nginx:latest
+    In this case container port 80 get published to the host port 8080.
+
+>>  docker container run -p [HOST_PORT]:[CONTAINER_PORT]/tcp 
+                         -p [HOST_PORT]:[CONTAINER_PORT]/udp [IMAGE]
+Eg: docker container run -d -p 8081:80/tcp 
+                            -p 8081:80/udp nginx
+
+List all port mappings or specific mapping for a container
+----------------------------------------------------------
+>>  docker container port <container_name>
+Eg: docker container port Web1 
+    443/tcp -> 0.0.0.0:32770
+    80/tcp  -> 0.0.0.0:32771
+   
+Eg: docker container port Web2 
+    80/tcp  -> 0.0.0.0:8080
+   
+Expose Container Ports
+----------------------
+>>  docker container run --expose <PORT_ID> <image_name>
+Eg: docker container run -d --expose 3000 nginx  (This will just expose the container port 3000)
+
+>>  docker container ls
+CONTAINER ID     IMAGE    COMMAND       CREATED        STATUS       PORTS               NAMES
+4a5ab8598e6a     nginx    ...           ...            ...          80/tcp, 3000/tcp    thirsty_swartz
+
+=====================================================================================================================
+Docker Container Volumes
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Create Docker Volume        >>  docker volume create volume_name
+Inspect Docker Volume       >>  docker volume inspect volume_name
+List Docker Volume          >>  docker volume ls
+Remove all unused Volume    >>  docker volume prune (Delete all volume that are not currently attached to a container.)
+Delete a Docker Volume      >>  docker volume rm volume_name
+
+Eg: Inspect Docker Volume
+-------------------------
+>>  docker volume inspect myvolume
+>>  [
+>>      {
+>>          "CreatedAt": "2019-05-07T07:48:50Z",
+>>          "Driver": "local",
+>>          "Labels": {},
+>>          "Mountpoint": "/var/lib/docker/volumes/myvolume/_data",
+>>          "Name": "myvolume",
+>>          "Options": {},
+>>          "Scope": "local"
+>>      }
+>>  ]
+=====================================================================================================================
+Mounting
+~~~~~~~~
+Mounting can be of 2 types.
+1. Volume Mount : Volume mounts mount a volume from the volumes directory. (ie /var/lib/docker/volume/dir_name)
+2. Bind Mount   : Bind mount mounts a directory from any location on the host. (ie host location will be any location)
+
+Using Volume Mount 
+~~~~~~~~~~~~~~~~~~
+
+1.Using mount flag
+------------------
+>>  docker volume create volume_name
+>>  docker container run -d --name container_name --mount type=volume,source=host_loc,target=container_loc image_name
+
+Eg: docker volume create myvolume
+    docker container run -d --name nginx-volume --mount type=volume,source=myvolume,target=/usr/share/nginx/html nginx
+
+2.Using volume flag
+-------------------
+>>  docker volume create volume_name
+>>  docker container run -d --name container_name  -v host_loc:container_loc image_name
+
+Eg: docker volume create myvolume
+    docker container run -d --name nginx-volume2 -v myvolume:/usr/share/nginx/html nginx
+    
+Making the volume readonly(readonly param makes it readonly)
+------------------------------------------------------------
+>>  docker container run -d --name container_name --mount source=host_loc,target=container_loc,readonly image_name
+Eg: docker container run -d --name nginx-volume3 --mount source=myvolume,target=/usr/share/nginx/html,readonly nginx
+
+
+Using Bind Mounts
+~~~~~~~~~~~~~~~~~
+
+1.Using mount flag
+------------------
+>>  docker container run -d --name container_name --mount type=bind,source=host_loc,target=container_loc image_name
+Eg: docker container run -d --name devcontainer --mount type=bind,source=myvolume,target=/app nginx
+
+2.Using volume flag
+-------------------
+>>  docker container run -d --name container_name -v host_loc:container_loc image_name
+Eg: docker container run -d --name devcontainer -v /home/cloud_user/target:/app nginx
+(Note : source path should mention the absolute path)
+
+Inspect the container to see the volume mount info
+--------------------------------------------------
+>>  docker container inspect devcontainer
+>>  "Mounts": [
+>>              {
+>>                  "Type": "volume",
+>>                  "Name": "myvolume",
+>>                  "Source": "/var/lib/docker/volumes/myvolume/_data",
+>>                  "Destination": "/app",
+>>                  "Driver": "local",
+>>                  "Mode": "z",
+>>                  "RW": true,
+>>                  "Propagation": ""
+>>              }
+>>          ],
+
+All docker volume get added to the default location : /var/lib/docker/volumes/
+
+Access running container and add a file to the target location
+--------------------------------------------------------------
+>>  docker container exec -it devcontainer /bin/bash
+>>  cd app
+>>  echo "Hello, Hi and How are you?" >> Hi.txt
+>>  exit
+
+Check the file exist in docker volume
+-------------------------------------
+>>  cd /var/lib/docker/volumes/myvolume/_data/
+>>  cat Hi.txt
+>>  Hello, Hi and How are you?
+
+Even if the container is stopped and removed, the file still exists in the docker volume.
+
+Eg: Mounting Directories From Underlying Host Inside My Container
+-----------------------------------------------------------------
+>>  docker run -d -p 8080:80 --name=Web1 -v /mnt/data nginx:latest
+
+Eg: Mounting Local Html on Container
+------------------------------------
+>>  docker run -d -p 8080:80 --name=Web1 -v /home/user/www : /usr/share/nginx/html nginx:latest
+                                    (Mounting Host Volume : Container Volume)  |
+                                                                               |--> Note :: Nginx default location
+=====================================================================================================================
+Docker Network Commands(To get more info, do : man docker-network-create)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Network Drivers                    >>    bridge,host,overlay,macvlan,none,Network,plugins
+List all Network Commands          >>    docker network -h
+List all Network                   >>    docker network ls       OR      docker network ls --no-trunc
+Inspect a docker network           >>    docker network inspect <docker_network_name>
+Create a docker network            >>    docker network create --subnet 10.1.0.0/24 --gateway 10.1.0.1 <network_name>
+Delete a network                   >>    docker network rm <network_name or network_id>
+Remove all unused network          >>    docker network prune
+Add container to a network         >>    docker network connect <network_name> <container_name>
+Remove container from a network    >>    docker network disconnect <network_name> <container_name>
+
+Adding and Removing containers to a network(Task)
+-------------------------------------------------
+Create a container with no network            >>    docker container run -d --name network-test03 -p 8081:80 nginx
+Create a new network                          >>    docker network create br01
+Add the container to the bridge network       >>    docker network connect br01 network-test03
+Inspect network-test03 to see the networks    >>    docker container inspect network-test03
+Remove network-test03 from br01               >>    docker network disconnect br01 network-test03
+
+Create a bridge network with a subnet and gateway
+-------------------------------------------------
+>>  docker network create --subnet 10.1.0.0/24 
+                          --gateway 10.1.0.1 bridge02
+                          
+Run ifconfig to view the bridge interface for bridge02
+------------------------------------------------------
+>>  ifconfig
+
+Inspect the bridge02 network
+----------------------------
+>>  docker network inspect bridge02
+
+Prune all unused networks
+-------------------------
+>>  docker network prune
+
+Create a Class B network with an ip-range with bridge driver
+------------------------------------------------------------
+>>  docker network create --subnet 10.1.0.0/16   (Class B)
+                          --gateway 10.1.0.1
+                          --ip-range 10.1.4.0/24 (Class C)
+                          --driver=bridge
+                          --label=host4network bridge04
+                          
+Run a container using bridge04 network
+--------------------------------------
+>>  docker container run -it --name nettest1  --network bridge04  centos:latest /bin/bash
+
+Install Net Tools
+-----------------
+# yum update
+# yum install -y net-tools    (for make commands such as ifconfig and netstat -rn available)
+
+Get the IP info for the container
+---------------------------------
+>>  ifconfig  
+
+Get the gateway info the container
+----------------------------------
+>>  netstat -rn
+
+Get the DNS info for the container
+----------------------------------
+>>  cat /etc/resolv.conf
+
+Assigning Static IP to a container : (Only works on user defined networks)
+--------------------------------------------------------------------------
+>> docker container run -it --name nettest2  --network bridge04  --ip 10.1.4.100  centos:latest /bin/bash
+# yum update
+# yum install -y net-tools                                                         
+# ifconfig | grep IP           ----> 10.1.4.100
+
+=====================================================================================================================
+Networking two containers
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Create an internal network
+--------------------------
+>>  docker network create --driver=bridge --internal localhost
+(Create a docker internal network called localhost, --internal :Restricts external access to the network)
+
+Create a MySQL container that is connected to localhost
+-------------------------------------------------------
+>>  docker container run -d --name test_mysql -e MYSQL_ROOT_PASSWORD=P4sSw0rd0
+                            --network localhost mysql:5.7
+                            
+Create a container that can ping the MySQL container
+----------------------------------------------------
+>>  docker container run -it --name ping-mysql 
+                             --network bridge 
+                             --network localhost centos:latest
+(The container will be using the default docker network : bridge and the user defined network : localhost) 
+#  ping test_mysql
+
+Create a container that can't ping the MySQL container
+------------------------------------------------------
+>>  docker container run -it --name cant-ping-mysql centos
+#  ping test_mysql
+
+Create a Nginx container that is not publicly accessible
+--------------------------------------------------------
+>>  docker container run -d --name private-nginx -p 8081:80 
+                            --network localhost nginx:latest
+
+Inspect private-nginx
+---------------------
+>>  docker container inspect private-nginx
+    
+=====================================================================================================================
+The Docker File - Creating a Docker file 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+FROM          >>  Initializes a new build stage and sets the Base Image
+RUN           >>  Will execute any commands in a new layer
+CMD           >>  Provides a default for an executing container. There can only be one CMD instruction in a Dockerfile
+LABEL         >>  Adds metadata to an image
+EXPOSE        >>  Informs Docker that the container listens on the specified network ports at runtime
+ENV           >>  Sets the environment variable <key> to the value <value>
+ADD           >>  Copies new files, directories or remote file URLs from <src> & adds them to the filesystem of the 
+                  image at the path <dest>.
+COPY          >>  Copies new files or directories from <src> & adds them to the filesystem of the container at the path
+                  <dest>.
+ENTRYPOINT    >>  Allows for configuring a container that will run as an executable
+VOLUME        >>  Creates a mount point with the specified name and marks it as holding externally mounted volumes from 
+                  native host or other containers
+USER          >>  Sets the user name (or UID) and optionally the user group (or GID) to use when running the image and 
+                  for any RUN, CMD, and ENTRYPOINT instructions that follow it in the Dockerfile
+WORKDIR       >>  Sets the working directory for any RUN, CMD, ENTRYPOINT, COPY, and ADD instructions that follow it in 
+                  the Dockerfile
+ARG           >>  Defines a variable that users can pass at build-time to the builder with the docker build command, 
+                  using the --build-arg <varname>=<value> flag
+ONBUILD       >>  Adds a trigger instruction to the image that will be executed at a later time, when the image is used 
+                  as the base for another build
+HEALTHCHECK   >>  Tells Docker how to test a container to check that it is still working
+SHELL         >>  Allows the default shell used for the shell form of commands to be overridden
+
+Best Practices for writing Docker file
+--------------------------------------
+https://docs.docker.com/develop/develop-images/dockerfile_best-practices/
+
+RUN vs CMD
+----------
+RUN : Anything written after RUN will be executed when you create the base image.
+CMD : Anthing after CMD is a list of things to run with in any container the instantiated on base image.
+
+ADD vs COPY
+-----------
+https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#add-or-copy
+
+ENV
+---
+Two ways to set environment variable
+1. Using the env flag while running the container. ie --env KEY=Value
+2. Use the ENV instruction in the Dockerfile. ie ENV KEY="Value"
+
+*****************************************************************************************************
+FROM debian:stable
+LABEL maintainer="vysakh.thekkanattu@gmail.com"   -->  New syntax for adding MAINTAINER.
+RUN apt-get update
+RUN apt-get -y upgrade                            -->  Each step in build process create a seperate layer or container.
+
+Building Image
+~~~~~~~~~~~~~~
+>>  docker image build -t <IMAGENAME> <DOCKERFILE_LOC>
+Eg: docker image build -t myimage:v1 .
+
+*****************************************************************************************************
+Rewriting Docker file to reduce number of steps, Add Environment variable, Expose ports 80 & 22
+of your container & build using the above mentioned syntax
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+FROM debian:stable
+LABEL maintainer="vsathyak@gmail.com"       
+RUN apt-get update && apt-get -y upgrade && apt-get -y install apache2 elinks telnet openssh-server
+ENV MYNAME Vysakh
+EXPOSE 80 22
+
+(Build using the above mentioned syntax and Run the container in disconnected mode. Also echo ENV to see the value.)
+>>  docker container run -d image_name:tag_name
+>>  docker container ls
+
+*****************************************************************************************************
+Starting Apache & Build using the above mentioned syntax and Run container in disconnect mode
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+FROM debian:stable
+LABEL maintainer="vsathyak@gmail.com"          
+RUN apt-get update && apt-get -y upgrade && apt-get -y install apache2 elinks telnet openssh-server
+ENV MYNAME Vysakh
+EXPOSE 80
+CMD ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"]     (-D for not running in daemon mode)
+
+>>  docker run -d image_name:tag_name
+>>  docker ps
+>>  docker inspect container_name | grep IPAddr   ==> 172.17.0.2
+>>  elinks http://172.17.0.2 will launch the debian apache website. Means when ever I instantiate the
+    base image built by me, it will run apache server automatically
+
+>>  docker exec -it container_name /bin/bash
+>>  ps -aux | grep apache    ==> see all apache process
+
+***************************************************************************************************
+Best Practices for writing Docker file
+--------------------------------------
+https://docs.docker.com/develop/develop-images/dockerfile_best-practices/
+
+RUN vs CMD
+----------
+RUN : Anything written after RUN will be executed when you create the base image.
+CMD : Anthing after CMD is a list of things to run with in any container the instantiated on base image.
+
+ADD vs COPY
+-----------
+https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#add-or-copy
+
+=====================================================================================================================
+Deep Dive Dockerfile Notes
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+1.Setup the Environment
+-----------------------
+>>  sudo yum install git -y
+>>  mkdir docker_images
+>>  cd docker_images
+>>  mkdir weather-app
+>>  cd weather-app
+>>  git clone https://github.com/linuxacademy/content-weather-app.git src
+
+Create the Dockerfile
+---------------------
+>>  vi Dockerfile
+
+# Create an image for the weather-app
+FROM node
+LABEL org.label-schema.version=v1.1
+RUN mkdir -p /var/node
+ADD src/ /var/node/
+WORKDIR /var/node
+RUN npm install
+EXPOSE 3000
+CMD ./bin/www
+
+Build the weather-app image
+---------------------------
+>>  docker image build -t linuxacademy/weather-app:v1 .
+
+Create the weather-app container
+--------------------------------
+>>  docker container run -d --name weather-app1 -p 8081:3000 linuxacademy/weather-app:v1
+
+
+2. With ENV variables
+~~~~~~~~~~~~~~~~~~~~~
+Setup your environment
+----------------------
+>>  cd docker_images
+>>  mkdir env
+>>  cd env
+
+Two ways to set environment variable
+1. Using the env flag while running the container. ie --env KEY=VALUE  
+2. Use the ENV instruction in the Dockerfile. ie ENV KEY="Value"
+
+Clone the weather-app
+---------------------
+>>  git clone https://github.com/linuxacademy/content-weather-app.git src
+
+Create the Dockerfile
+---------------------
+>>  vi Dockerfile
+
+# Create an image for the weather-app
+FROM node
+LABEL org.label-schema.version=v1.1
+ENV NODE_ENV="development"
+ENV PORT 3000
+
+RUN mkdir -p /var/node
+ADD src/ /var/node/
+WORKDIR /var/node
+RUN npm install
+EXPOSE $PORT
+CMD ./bin/www
+
+Build the weather-app image
+---------------------------
+>>  docker image build -t linuxacademy/weather-app:v2 .
+
+Inspect the container to see the environment variables
+------------------------------------------------------
+>>  docker image inspect linuxacademy/weather-app:v2
+
+Deploy the weather-dev application:
+--------------------------------
+>>  docker container run -d --name weather-dev -p 8082:3001 --env PORT=3001 linuxacademy/weather-app:v2
+
+Inspect the development container to see the environment variables
+------------------------------------------------------------------
+>>  docker container inspect weather-dev
+
+Deploy the weather-app to production
+------------------------------------
+>>  docker container run -d --name weather-app2 -p 8083:3001 --env PORT=3001 --env NODE_ENV=production 
+    linuxacademy/weather-app:v2
+
+Inspect the production container to see the environment variables
+-----------------------------------------------------------------
+>>  docker container inspect weather-app2
+
+Get the logs for weather-app2
+-----------------------------
+>>  docker container logs weather-app2
+>>  docker container run -d --name weather-prod -p 8084:3000 --env NODE_ENV=production linuxacademy/weather-app:v2
+
+
+3. With Build Arguments
+~~~~~~~~~~~~~~~~~~~~~~~
+To set and argument, use ARG instruction in the Dockerfile. ie ARG [NAME]=[DEFAULT_VALUE]
+To pass a build argument when building an image, use the flag --build-arg flag. ie --build-arg [NAME]=[VALUE]
+
+Setup your environment
+----------------------
+>>  cd docker_images
+>>  mkdir args
+>>  cd args
+
+Clone the weather-app
+---------------------
+>>  git clone https://github.com/linuxacademy/content-weather-app.git src
+
+Create the Dockerfile
+---------------------
+>>  vi Dockerfile
+
+# Create an image for the weather-app
+FROM node
+LABEL org.label-schema.version=v1.1
+ARG SRC_DIR=/var/node
+
+RUN mkdir -p $SRC_DIR
+ADD src/ $SRC_DIR
+WORKDIR $SRC_DIR
+RUN npm install
+EXPOSE 3000
+CMD ./bin/www
+
+Create the weather-app container
+--------------------------------
+>>  docker image build -t linuxacademy/weather-app:v3 --build-arg SRC_DIR=/var/code .
+
+Inspect the image
+-----------------
+>>  docker image inspect linuxacademy/weather-app:v3 | grep WorkingDir
+
+Create the weather-app container
+--------------------------------
+>>  docker container run -d --name weather-app3 -p 8085:3000 linuxacademy/weather-app:v3
+
+Verify that the container is working by executing curl
+------------------------------------------------------
+>>  curl localhost:8085
+
+
+4. Working with Non-privileged Users
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Setup your environment
+----------------------
+>>  cd docker_images
+>>  mkdir non-privileged-user
+>>  cd non-privileged-user
+
+Create the Dockerfile
+---------------------
+>>  vi Dockerfile
+
+# Creates a CentOS image that uses cloud_user as a non-privileged user
+FROM centos:latest
+RUN useradd -ms /bin/bash cloud_user
+USER cloud_user
+
+Build the new image
+-------------------
+>>  docker image build -t centos7/nonroot:v1 .
+
+Create a container using the new image
+--------------------------------------
+>>  docker container run -it --name test-build centos7/nonroot:v1 /bin/bash
+>>  whoami
+
+Connecting as a privileged user
+-------------------------------
+>>  docker container start test-build
+>>  docker container exec -u 0 -it test-build /bin/bash
+
+
+5. Using the VOLUME instruction
+-------------------------------
+Setup your environment
+----------------------
+>>  cd docker_images
+>>  mkdir volumes
+>>  cd volumes
+
+Create the Dockerfile
+---------------------
+>>  vi Dockerfile
+
+# Build an Nginx image that uses a volume
+FROM nginx:latest
+VOLUME ["/usr/share/nginx/html/"]
+
+Build the new image
+-------------------
+>>  docker image build -t linuxacademy/nginx:v1 .
+
+Create a new container using the linuxacademy/nginx:v1 image
+------------------------------------------------------------
+>>  docker container run -d --name nginx-volume linuxacademy/nginx:v1
+
+Inspect nginx-volume
+--------------------
+>>  docker container inspect nginx-volume
+
+List the volumes
+----------------
+>>  docker volume ls | grep [VOLUME_NAME]
+
+Inspect the volumes
+-------------------
+>>  docker volume inspect [VOLUME_NAME]
+
+=====================================================================================================================
+Inspect Container Process
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Display all running process in a container
+------------------------------------------
+>>  1. docker container top <container_name>
+>>  2. Run container or use exec or attach to access a container and execute 'top' commad
+
+To get container resource usage info in realtime
+------------------------------------------------
+>>  docker container stats
+>>  docker container stats <container_name>
+
+Docker Events : To get real time docker events from the server
+-------------
+>>  docker system events              : will attach to the docker daemon and wait for events.
+>>  docker system events --since '1h' : will list all the container events that happened in last one hour.
+
+Filter events : Only filtered events will be shown.
+-------------
+Eg :
+>>  docker system events --filter event=attach
+>>  docker system events --filter type=container --since '1h'
+>>  docker system events --filter type=container --filter event=attach  
+>>  docker system events --filter type=container --filter event=start --since '1h'
+>>  docker system events --filter type=container --filter event=attach --filter event=die --filter event=stop 
+
+Note : https://docs.docker.com/engine/reference/commandline/events/
+
+=====================================================================================================================
+Saving and Loading Docker Images
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Save one or more images to a tar file
+-------------------------------------
+>>  docker image save <IMAGENAME:TAGNAME> > <FILENAME>.tar
+>>  docker image save <IMAGENAME:TAGNAME> -o <FILENAME>.tar
+>>  docker image save <IMAGENAME:TAGNAME> --output <FILENAME>.tar
+
+>>  Eg: docker save centos:latest > centos.latest.tar
+>>  Eg: docker save centos:latest --output centos.latest.tar 
+
+
+Load an image from a tar file
+-----------------------------
+>>  docker image load < <FILENAME>.tar
+>>  docker image load -i <FILENAME>.tar
+>>  docker image load --input <FILENAME>.tar
+
+>>  Eg: docker load < centos.latest.tar
+>>  Eg: docker --input centos.latest.tar
+
+=====================================================================================================================
+Managing Docker using Protainer
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Create a volume for Portainers data
+-----------------------------------
+>>  docker volume create portainer_data
+
+Create the Portainers container
+-------------------------------
+>>  docker container run -d --name portainer -p 8080:9000 --restart=always \
+    -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data \
+    portainer/portainer
+    
+=====================================================================================================================
+Docker Compose Installation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Download the latest version of Docker Compose
+---------------------------------------------
+>>  sudo curl -L "https://github.com/docker/compose/releases/download/1.25.4/docker-compose-$(uname -s)-$(uname -m)"  
+    -o /usr/local/bin/docker-compose
+
+Apply executable permissions
+----------------------------
+>>  sudo chmod +x /usr/local/bin/docker-compose
+
+Test Docker Compose
+-------------------
+>>  docker-compose --version
+
+*****************************************************************************************************
+Docker Compose Commands
+~~~~~~~~~~~~~~~~~~~~~~~
+build      >>    Build or rebuild services
+bundle     >>    Generate a Docker bundle from the Compose file
+config     >>    Validate and view the Compose file
+create     >>    Create services
+down       >>    Stop and remove containers, networks, images, and volumes
+events     >>    Receive real time events from containers
+exec       >>    Execute a command in a running container
+help       >>    Get help on a command
+images     >>    List images
+kill       >>    Kill containers
+logs       >>    View output from containers
+pause      >>    Pause services
+port       >>    Print the public port for a port binding
+ps         >>    List containers
+pull       >>    Pull service images
+push       >>    Push service images
+restart    >>    Restart services
+rm         >>    Remove stopped containers
+run        >>    Run a one-off command
+scale      >>    Set number of containers for a service
+start      >>    Start services
+stop       >>    Stop services
+top        >>    Display the running processes
+unpause    >>    Unpause services
+up         >>    Create and start containers
+version    >>    Show the Docker-Compose version information
+
+Setup your environment
+----------------------
+>>  mkdir -p compose/commands
+>>  cd compose/commands
+
+Create a docker-compose file
+----------------------------
+>>  vi docker-compose.yml
+>>  docker-compose.yml contents:
+
+version: '3'
+services:
+  web:
+    image: nginx
+    ports:
+    - "8080:80"
+    volumes:
+    - nginx_html:/usr/share/nginx/html/
+    links:
+    - redis
+  redis:
+    image: redis
+volumes:
+  nginx_html: {}
+
+Create a compose service             >>     docker-compose up -d
+List containers created by compose   >>     docker-compose ps
+Stopping a compose service           >>     docker-compose stop
+Starting a compose service           >>     docker-compose start
+Restarting a compose service         >>     docker-compose restart
+Delete a compose service             >>     docker-compose down
+
+You should execute the docker compose commands in place where the docker-compose file resides. For eg:
+To list the container created using compose command
+---------------------------------------------------
+>>  docker-compose ps   (at the location where your compose file resides)  OR
+>>  docker-compose -f path_to_docker-compose.yml ps
+
+Refer : https://docs.docker.com/compose/, https://docs.docker.com/compose/compose-file/
+
+*****************************************************************************************************
+Creating a Compose File
+~~~~~~~~~~~~~~~~~~~~~~~
+Setup your environment
+----------------------
+>>  cd compose
+>>  git clone https://github.com/linuxacademy/content-weather-app.git weather-app
+>>  cd weather-app
+>>  git checkout compose
+
+Docker compose file has four kind of top level keys. They are 
+ - version
+ - services
+ - networks
+ - volumes
+ 
+Create a docker-compose.yml file
+--------------------------------
+>>  vi docker-compose.yml
+
+version: '3'
+services:
+  weather-app:
+    container_name: weather1
+    build:
+      context: .
+      args:
+        - VERSION=v2.0
+    ports:
+      - "8081:3000"
+    environment:
+      - NODE_ENV=production
+      
+Create the compose container       >>  docker-compose up -d
+List compose services              >>  docker-compose ps
+Verify the weather-app is working  >>  curl http://localhost:8081
+Rebuild the image                  >>  docker-compose build
+Rebuild the image with no cache    >>  docker-compose build --no-cache
+
+*****************************************************************************************************
+Using Volumes and Networking with Compose
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Setup your environment
+----------------------
+>>  mkdir -p compose/ghost
+>>  cd compose/ghost
+
+Create a docker-compose.yml file
+--------------------------------
+>>  vi docker-compose.yml
+
+version: '3'
+services:
+  ghost:
+    container_name: ghost
+    image: ghost:latest
+    ports:
+      - "80:2368"
+    environment:
+      - database__client=mysql
+      - database__connection__host=mysql
+      - database__connection__user=root
+      - database__connection__password=P4SSw0rd0!
+      - database__connection__database=ghost
+    volumes:
+      - ghost-volume:/var/lib/ghost
+    networks:
+      - ghost_network
+      - mysql_network
+    depends_on:
+      - mysql
+
+  mysql:
+    container_name: mysql
+    image: mysql:5.7
+    environment:
+      - MYSQL_ROOT_PASSWORD=P4SSw0rd0!
+    volumes:
+      - mysql-volume:/var/lib/mysql
+    networks:
+      - mysql_network
+
+volumes:
+  ghost-volume:
+  mysql-volume:
+
+networks:
+  ghost_network:
+  mysql_network:
+
+Create the compose container   >>  docker-compose up -d
+List compose services          >>  docker-compose ps
+List the volumes               >>  docker volumes ls
+List the volumes               >>  docker network ls
+
+Ref : https://docs.docker.com/compose/compose-file/
+
+=====================================================================================================================
+Docker Swarm
+~~~~~~~~~~~~
+2 major components in Swarm   >>  Swarm Cluster
+                              >>  Orchestration Engine
+
+The Cluster
+----------
+  A swarm consists of one or more Docker nodes.
+  Nodes are either a managers or a worker.
+  Managers:
+      Manage the state of the cluster
+      Dispatch tasks to workers
+  Workers:
+      Accepts task and execute tasks
+  State is held in etcd
+  Swarm uses Transport Layer Security (TLS):
+      Encrypted communication
+      Authenticated nodes
+      Authorized roles
+
+Orchestration
+-------------
+  The atomic unit of scheduling is a swarm service.
+  The service construct adds the following to a container:
+    scaling
+    rolling updates
+    rollback
+    updates
+
+A container wrapped in a service is called as a task or a replica.
+
+=====================================================================================================================
+Running Docker in Swarm Mode
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+>>  Install Docker in both master and Worker nodes
+
+Initialize the manager
+----------------------
+>>  docker swarm init --advertise-addr [PRIVATE_IP_OF_MASTER_NODE]
+
+Add the worker to the cluster
+-----------------------------
+>>  docker swarm join --token [TOKEN] [PRIVATE_IP]:2377
+Eg: docker swarm join --token SWMTKN-1-1gx26or5o00fnbg2ujs8pkfxf2gmfcb2o2lh5gvl3t9phuio5x-bfxsog8eth0i8o67epmoesxvb 172.31.109.1:2377
+
+List the nodes in the swarm
+---------------------------
+>>  docker node ls
+
+=====================================================================================================================
+Managing Swarm Nodes
+~~~~~~~~~~~~~~~~~~~~
+Listing nodes                       >>     docker node ls
+
+Inspecting a node                   >>     docker node inspect [NODE_NAME]
+
+Promoting a worker to a manager     >>     docker node promote [NODE_NAME]
+
+Demoting a manager to a worker      >>     docker node demote [NODE_NAME]
+
+Removing a node from the swarm      >>     docker node rm -f [NODE_NAME]   
+                                           (node must be demoted first, -f is used since node is active)
+
+Make a node leave the swarm         >>     Remove the node from the swarm. Then the following cmd
+                                           docker swarm leave
+
+Getting the join-token              >>     docker swarm join-token worker   (Returns worker token)
+                                           docker swarm join-token manager  (Returns manager token)
+
+Make the node rejoin the swarm      >>     docker swarm join --token [TOKEN] <PRIVATE_IP>:2377
+
+=====================================================================================================================
+Working with Services
+~~~~~~~~~~~~~~~~~~~~~
+Create a docker service        >>  docker service create -d --name nginx_service -p 8080:80 --replicas 2 nginx:latest
+(for nginx with 2 replicas)
+
+List Services                  >>  docker service ls
+
+Inspect a Service              >>  docker service inspect <NAME>
+
+Getting logs for a service     >>  docker service logs <NAME>
+
+List all tasks of a service    >>  docker service ps <NAME>
+
+Scale a service up or down     >>  docker service scale <NAME>=[NO_OF_REPLICAS]
+
+Updating a Service             >>  docker service update -h
+                               >>  docker service update [OPTIONS] [NAME]
+                               Eg: docker service update --replicas=3 nginx_service
+
+=====================================================================================================================
+
+
+
+
+
