@@ -460,3 +460,243 @@ Ansible variables have a defined **precedence** order, meaning if a variable is 
 - **Dynamic Variables**: Created using Jinja2 expressions or within tasks.
 
 These methods provide flexibility in managing variables and allow you to control the configuration of your Ansible playbooks at different levels.
+
+
+Creating a comprehensive Ansible example that touches all key concepts can be challenging, but it’s possible to design a playbook and role that integrates **inventory**, **tasks**, **variables**, **loops**, **conditionals**, **tags**, **handlers**, **templates**, **files**, **roles**, and **vault**. Below is a robust example that covers all these concepts.
+
+---
+
+### **1. Directory Structure**
+```plaintext
+project/
+├── ansible.cfg
+├── inventory
+├── playbook.yml
+├── group_vars/
+│   └── web.yml
+├── roles/
+│   └── webserver/
+│       ├── tasks/
+│       │   └── main.yml
+│       ├── handlers/
+│       │   └── main.yml
+│       ├── templates/
+│       │   └── nginx.conf.j2
+│       ├── files/
+│       │   └── index.html
+│       ├── vars/
+│       │   └── main.yml
+│       ├── defaults/
+│       │   └── main.yml
+│       ├── meta/
+│       │   └── main.yml
+└── secrets.yml (encrypted using Ansible Vault)
+```
+
+---
+
+### **2. Inventory File (`inventory`)**
+
+```ini
+[web]
+web1.example.com ansible_user=ubuntu ansible_ssh_private_key_file=/path/to/key
+```
+
+---
+
+### **3. Ansible Configuration (`ansible.cfg`)**
+
+```ini
+[defaults]
+inventory = inventory
+remote_user = ubuntu
+host_key_checking = False
+```
+
+---
+
+### **4. Encrypted Secrets (`secrets.yml`)**
+
+Encrypt sensitive data using Ansible Vault:
+```bash
+ansible-vault encrypt secrets.yml
+```
+
+Example content:
+```yaml
+---
+nginx_password: "SuperSecretPassword"
+```
+
+---
+
+### **5. Group Variables (`group_vars/web.yml`)**
+
+Define variables specific to the `web` group:
+```yaml
+---
+nginx_port: 80
+app_name: My Web App
+```
+
+---
+
+### **6. Playbook (`playbook.yml`)**
+
+```yaml
+---
+- name: Configure web servers
+  hosts: web
+  vars_files:
+    - secrets.yml
+  roles:
+    - webserver
+```
+
+---
+
+### **7. Role: Tasks (`roles/webserver/tasks/main.yml`)**
+
+```yaml
+---
+- name: Install NGINX
+  apt:
+    name: nginx
+    state: present
+  notify: Restart NGINX
+
+- name: Deploy NGINX configuration
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+  notify: Restart NGINX
+
+- name: Deploy static HTML
+  copy:
+    src: index.html
+    dest: /var/www/html/index.html
+    owner: www-data
+    group: www-data
+    mode: '0644'
+
+- name: Ensure NGINX is running
+  service:
+    name: nginx
+    state: started
+    enabled: yes
+
+- name: Print app details
+  debug:
+    msg: "Application {{ app_name }} is running on port {{ nginx_port }}"
+```
+
+---
+
+### **8. Role: Handlers (`roles/webserver/handlers/main.yml`)**
+
+```yaml
+---
+- name: Restart NGINX
+  service:
+    name: nginx
+    state: restarted
+```
+
+---
+
+### **9. Role: Templates (`roles/webserver/templates/nginx.conf.j2`)**
+
+```jinja
+server {
+    listen {{ nginx_port }};
+    server_name localhost;
+
+    root /var/www/html;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+
+    error_log /var/log/nginx/error.log;
+    access_log /var/log/nginx/access.log;
+}
+```
+
+---
+
+### **10. Role: Files (`roles/webserver/files/index.html`)**
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ app_name }}</title>
+</head>
+<body>
+    <h1>Welcome to {{ app_name }}</h1>
+</body>
+</html>
+```
+
+---
+
+### **11. Role: Variables (`roles/webserver/vars/main.yml`)**
+
+```yaml
+---
+nginx_config_dir: /etc/nginx
+html_dir: /var/www/html
+```
+
+---
+
+### **12. Role: Defaults (`roles/webserver/defaults/main.yml`)**
+
+```yaml
+---
+nginx_port: 8080
+app_name: Default Web App
+```
+
+---
+
+### **13. Role: Meta (`roles/webserver/meta/main.yml`)**
+
+```yaml
+---
+dependencies:
+  - role: firewall
+    vars:
+      allowed_ports:
+        - "{{ nginx_port }}"
+```
+
+---
+
+### **14. Run the Playbook**
+
+Run the playbook:
+```bash
+ansible-playbook playbook.yml
+```
+
+---
+
+### **How Each Concept is Covered**
+| **Concept**       | **Usage**                                                                                     |
+|--------------------|-----------------------------------------------------------------------------------------------|
+| **Inventory**      | Defines target hosts and SSH keys.                                                           |
+| **Playbook**       | Specifies the roles and variables to execute.                                                |
+| **Roles**          | Organizes reusable tasks, templates, handlers, etc.                                          |
+| **Tasks**          | Manages NGINX installation, configuration, and service.                                      |
+| **Handlers**       | Restarts NGINX when configuration changes.                                                   |
+| **Variables**      | Used for customization (ports, app name).                                                    |
+| **Templates**      | Dynamic NGINX configuration using Jinja2.                                                    |
+| **Files**          | Serves a static HTML file.                                                                   |
+| **Vault**          | Secures sensitive data like passwords.                                                       |
+| **Conditionals**   | N/A in this example, but could be added (e.g., based on OS type).                             |
+| **Loops**          | Could be added (e.g., install multiple packages).                                            |
+| **Tags**           | Add tags to tasks for selective execution (e.g., `--tags "nginx"`).                          |
+
+This example demonstrates a complete, real-world Ansible configuration using all key concepts! Let me know if you'd like to expand or add anything.
