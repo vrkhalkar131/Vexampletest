@@ -1,0 +1,55 @@
+Below is an example of a Kubernetes YAML configuration file for creating a `Deployment`. This configuration defines a Deployment that manages a simple application with one container running an NGINX web server:
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment  # Name of the Deployment
+  labels:
+    app: nginx            # Labels to identify this Deployment
+spec:
+  replicas: 3             # Number of replicas/pods to create
+  selector:
+    matchLabels:
+      app: nginx          # Match these labels for pod selection
+  template:
+    metadata:
+      labels:
+        app: nginx        # Labels assigned to pods created by this Deployment
+    spec:
+      containers:
+      - name: nginx       # Name of the container
+        image: nginx:1.21.6  # Container image to use
+        ports:
+        - containerPort: 80  # Port exposed by the container
+        resources:
+          requests:       # Resource requests for the container
+            memory: "64Mi"
+            cpu: "250m"
+          limits:         # Resource limits for the container
+            memory: "128Mi"
+            cpu: "500m"
+```
+
+### Key Sections Explained:
+1. **`apiVersion`**: Specifies the API version (e.g., `apps/v1` for Deployments).
+2. **`kind`**: Specifies the resource type (e.g., `Deployment`).
+3. **`metadata`**: Contains metadata such as the name and labels.
+4. **`spec.replicas`**: Indicates the number of pod replicas to maintain.
+5. **`spec.selector`**: Matches labels to select pods managed by this Deployment.
+6. **`template`**:
+   - **`metadata`**: Labels for the pods created.
+   - **`spec`**: Describes the containers in the pods.
+7. **`resources`**: Optionally specifies resource requests and limits for the container.
+
+### Apply the YAML:
+Save this to a file, e.g., `deployment.yaml`, and use the following command to apply it to your Kubernetes cluster:
+```bash
+kubectl apply -f deployment.yaml
+```
+
+### Verify the Deployment:
+```bash
+kubectl get deployments
+kubectl get pods
+```
