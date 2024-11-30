@@ -1,0 +1,183 @@
+In a **Dockerfile**, instructions are used to define how an image is built and configured. Below are the most common Dockerfile instructions, along with explanations and examples:
+
+### 1. **`FROM`**
+- **Purpose**: Specifies the base image to use for the Docker image.
+- **Syntax**: `FROM <image>[:<tag>]`
+- **Example**:
+  ```dockerfile
+  FROM ubuntu:20.04
+  ```
+
+### 2. **`LABEL`**
+- **Purpose**: Adds metadata to the image, such as author, description, version, etc.
+- **Syntax**: `LABEL <key>=<value> ...`
+- **Example**:
+  ```dockerfile
+  LABEL maintainer="your-email@example.com" version="1.0"
+  ```
+
+### 3. **`RUN`**
+- **Purpose**: Executes commands inside the image during the build process (typically for installing dependencies).
+- **Syntax**: `RUN <command>`
+- **Example**:
+  ```dockerfile
+  RUN apt-get update && apt-get install -y python3
+  ```
+
+### 4. **`COPY`**
+- **Purpose**: Copies files or directories from the host machine into the container.
+- **Syntax**: `COPY <src> <dest>`
+- **Example**:
+  ```dockerfile
+  COPY ./myapp /usr/src/app
+  ```
+
+### 5. **`ADD`**
+- **Purpose**: Similar to `COPY`, but also supports unpacking tar archives and fetching files from URLs.
+- **Syntax**: `ADD <src> <dest>`
+- **Example**:
+  ```dockerfile
+  ADD myapp.tar.gz /usr/src/app
+  ```
+
+### 6. **`CMD`**
+- **Purpose**: Defines the default command to run when the container starts. It can be overridden by command-line arguments.
+- **Syntax**: 
+  - `CMD ["executable", "param1", "param2"]` (exec form)
+  - `CMD ["param1", "param2"]` (shell form)
+  - `CMD <command>`
+- **Example**:
+  ```dockerfile
+  CMD ["python3", "app.py"]
+  ```
+
+### 7. **`ENTRYPOINT`**
+- **Purpose**: Specifies a command that is always run when the container starts. This command can be combined with `CMD` to specify default arguments.
+- **Syntax**: 
+  - `ENTRYPOINT ["executable", "param1", "param2"]` (exec form)
+  - `ENTRYPOINT <command>`
+- **Example**:
+  ```dockerfile
+  ENTRYPOINT ["python3", "app.py"]
+  ```
+
+### 8. **`EXPOSE`**
+- **Purpose**: Informs Docker that the container will listen on the specified network ports at runtime (does not actually publish the ports).
+- **Syntax**: `EXPOSE <port>`
+- **Example**:
+  ```dockerfile
+  EXPOSE 80
+  ```
+
+### 9. **`ENV`**
+- **Purpose**: Sets environment variables inside the container.
+- **Syntax**: `ENV <key>=<value>`
+- **Example**:
+  ```dockerfile
+  ENV NODE_ENV=production
+  ```
+
+### 10. **`VOLUME`**
+- **Purpose**: Creates a mount point with a specified path and marks it as holding external volumes.
+- **Syntax**: `VOLUME ["<path>"]`
+- **Example**:
+  ```dockerfile
+  VOLUME ["/data"]
+  ```
+
+### 11. **`WORKDIR`**
+- **Purpose**: Sets the working directory for subsequent instructions (e.g., `RUN`, `CMD`, `ENTRYPOINT`).
+- **Syntax**: `WORKDIR <path>`
+- **Example**:
+  ```dockerfile
+  WORKDIR /usr/src/app
+  ```
+
+### 12. **`USER`**
+- **Purpose**: Sets the user to use when running the image (after `USER` is specified, all subsequent commands run as this user).
+- **Syntax**: `USER <username or UID>`
+- **Example**:
+  ```dockerfile
+  USER ubuntu
+  ```
+
+### 13. **`ARG`**
+- **Purpose**: Defines build-time variables that can be passed to the Docker build process.
+- **Syntax**: `ARG <variable_name>[=<default_value>]`
+- **Example**:
+  ```dockerfile
+  ARG app_version=1.0
+  ```
+
+### 14. **`STOPSIGNAL`**
+- **Purpose**: Defines the signal that will be sent to the container to stop it (e.g., SIGTERM, SIGKILL).
+- **Syntax**: `STOPSIGNAL <signal>`
+- **Example**:
+  ```dockerfile
+  STOPSIGNAL SIGINT
+  ```
+
+### 15. **`HEALTHCHECK`**
+- **Purpose**: Configures a command that Docker will use to check if the container is healthy.
+- **Syntax**: 
+  ```dockerfile
+  HEALTHCHECK [OPTIONS] CMD <command>
+  ```
+- **Example**:
+  ```dockerfile
+  HEALTHCHECK CMD curl --fail http://localhost/health || exit 1
+  ```
+
+### 16. **`SHELL`**
+- **Purpose**: Allows you to specify the shell to use for the `RUN` command (e.g., `sh` vs `bash`).
+- **Syntax**: `SHELL ["executable", "parameters"]`
+- **Example**:
+  ```dockerfile
+  SHELL ["/bin/bash", "-c"]
+  ```
+
+---
+
+### **Example of a Dockerfile Using Common Instructions**
+
+```dockerfile
+# Base image
+FROM node:14
+
+# Maintainer info
+LABEL maintainer="your-email@example.com"
+
+# Set environment variable
+ENV NODE_ENV=production
+
+# Set working directory
+WORKDIR /app
+
+# Copy package.json and install dependencies
+COPY package.json /app
+RUN npm install
+
+# Copy application files
+COPY . /app
+
+# Expose port 3000
+EXPOSE 3000
+
+# Set default command
+CMD ["npm", "start"]
+```
+
+### **Explanation**:
+- `FROM node:14`: Use the official Node.js 14 image as the base.
+- `LABEL maintainer="your-email@example.com"`: Set metadata for the image.
+- `ENV NODE_ENV=production`: Set the environment variable `NODE_ENV` to `production`.
+- `WORKDIR /app`: Set the working directory to `/app`.
+- `COPY package.json /app`: Copy `package.json` into the working directory.
+- `RUN npm install`: Install dependencies using `npm`.
+- `COPY . /app`: Copy the rest of the application code into the container.
+- `EXPOSE 3000`: Expose port `3000`.
+- `CMD ["npm", "start"]`: Set the default command to `npm start` when the container runs.
+
+---
+
+These are the basic instructions you'll use in a Dockerfile. By combining them, you can build highly customized and optimized Docker images.
