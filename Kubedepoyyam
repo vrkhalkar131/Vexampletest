@@ -53,3 +53,7 @@ kubectl apply -f deployment.yaml
 kubectl get deployments
 kubectl get pods
 ```
+
+
+
+kubectl create deployment nginx-deployment --image=nginx:1.21.6 --replicas=3 --dry-run=client -o yaml > deployment.yaml
