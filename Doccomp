@@ -1,0 +1,125 @@
+Certainly! Here's an example of using **Docker Compose** to define and run a multi-container application. In this case, we'll create a simple web application using **Nginx** as the web server and **MySQL** as the database, with a configuration that defines both containers in a `docker-compose.yml` file.
+
+---
+
+### **Step 1: Define Docker Compose File (`docker-compose.yml`)**
+
+In the root of your project, create a file named `docker-compose.yml` that defines the services (containers) you need. Here's an example configuration for a simple app with Nginx and MySQL.
+
+```yaml
+version: '3.8'
+
+services:
+  web:
+    image: nginx:latest
+    container_name: webserver
+    ports:
+      - "80:80"  # Map port 80 on the host to port 80 in the container
+    volumes:
+      - ./html:/usr/share/nginx/html  # Mount local directory to the container
+
+  db:
+    image: mysql:5.7
+    container_name: mysql_db
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password  # Set the root password for MySQL
+      MYSQL_DATABASE: mydatabase  # Set the default database
+    volumes:
+      - db_data:/var/lib/mysql  # Mount a named volume to persist data
+
+volumes:
+  db_data:  # Define a named volume for the MySQL data
+```
+
+---
+
+### **Explanation of `docker-compose.yml` Configuration**:
+- **version**: Defines the version of the Docker Compose file format (e.g., `'3.8'`).
+- **services**: A list of containers that will be run.
+  - **web**: Defines the Nginx web server container.
+    - `image`: The Docker image to use (in this case, the latest Nginx image).
+    - `container_name`: The name to assign to the running container.
+    - `ports`: Exposes the container's port 80 on the host machine's port 80.
+    - `volumes`: Mounts a local `html` directory to the Nginx container's web directory.
+  - **db**: Defines the MySQL database container.
+    - `image`: The Docker image to use (MySQL 5.7).
+    - `environment`: Defines environment variables such as the root password and the default database.
+    - `volumes`: Mounts a named volume `db_data` to persist MySQL data between container restarts.
+- **volumes**: Defines a named volume `db_data` to persist the MySQL data outside of the container.
+
+---
+
+### **Step 2: Create the Web Application Files (Optional)**
+
+For this example, you might want to have an HTML file to serve through Nginx. Create a directory called `html` in the same directory as your `docker-compose.yml` file, and add an `index.html` file.
+
+```html
+<!-- ./html/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Docker App</title>
+</head>
+<body>
+  <h1>Welcome to My Docker App!</h1>
+  <p>This page is served by Nginx from Docker.</p>
+</body>
+</html>
+```
+
+---
+
+### **Step 3: Run Docker Compose**
+
+Once your `docker-compose.yml` file and application files are ready, you can use the following commands to start the application.
+
+1. **Start the containers**:
+   Run this command in the same directory as the `docker-compose.yml` file:
+   ```bash
+   docker-compose up
+   ```
+
+   This will:
+   - Download the required images (if not already on your system).
+   - Start the `web` and `db` containers.
+   - Expose the web service on port 80.
+
+2. **Start containers in detached mode**:
+   To run the containers in the background (detached mode), use:
+   ```bash
+   docker-compose up -d
+   ```
+
+3. **Stop the containers**:
+   To stop the running containers, use:
+   ```bash
+   docker-compose down
+   ```
+
+---
+
+### **Step 4: Verify the Application**
+
+1. Open a web browser and navigate to `http://localhost`. You should see the HTML page served by Nginx with the message "Welcome to My Docker App!"
+   
+2. If you need to view logs from the running containers, you can use:
+   ```bash
+   docker-compose logs
+   ```
+
+3. To stop and remove the containers and networks, use:
+   ```bash
+   docker-compose down
+   ```
+
+---
+
+### **Summary**
+
+This Docker Compose example demonstrates how to set up a multi-container application with:
+- **Nginx** as the web server, serving a static HTML file.
+- **MySQL** as the database, with persistent storage using volumes.
+
+By defining both containers and their configuration in the `docker-compose.yml` file, you can easily manage complex applications with multiple services. Docker Compose simplifies starting and stopping multi-container applications, making it a powerful tool for development and deployment.
