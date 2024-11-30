@@ -1,0 +1,229 @@
+Here are comprehensive notes covering **PowerShell concepts** and commands, organized for quick reference:
+
+---
+
+## **1. PowerShell Basics**
+- **Command Structure**: Verb-Noun (e.g., `Get-Help`, `Set-Item`).
+- **Help System**:
+  ```powershell
+  Get-Help <cmdlet> -Full       # Get detailed help
+  Get-Command                   # List all commands
+  Get-Help -Online              # View help online
+  Update-Help                   # Update local help files
+  ```
+- **Aliases**: Shortcuts for cmdlets.
+  ```powershell
+  Get-Alias                     # List all aliases
+  ls, dir  → Get-ChildItem      # Example aliases
+  ```
+
+---
+
+## **2. Variables**
+- **Defining Variables**:
+  ```powershell
+  $var = "Hello World"          # String
+  $num = 42                     # Integer
+  $array = @(1, 2, 3)           # Array
+  $hash = @{Key1="Value1"}      # Hash Table
+  ```
+- **Variable Types**:
+  ```powershell
+  [string]$var = "Text"         # Strongly typed
+  [int]$num = 123
+  ```
+- **Common Scopes**:
+  - `$global:var` (Global scope)
+  - `$local:var` (Local scope)
+  - `$script:var` (Script scope)
+
+---
+
+## **3. Operators**
+- **Comparison**:
+  - `-eq` (Equal), `-ne` (Not Equal)
+  - `-lt` (Less Than), `-gt` (Greater Than)
+  - `-like` (Wildcard Match), `-match` (Regex Match)
+- **Logical**: `-and`, `-or`, `-not`
+- **Arithmetic**: `+`, `-`, `*`, `/`, `%`
+
+---
+
+## **4. Loops and Conditional Statements**
+- **If-Else**:
+  ```powershell
+  if ($var -eq "value") {
+      Write-Output "Equal"
+  } elseif ($var -eq "other") {
+      Write-Output "Other"
+  } else {
+      Write-Output "Not Equal"
+  }
+  ```
+- **Loops**:
+  ```powershell
+  foreach ($item in $array) { Write-Output $item }
+  for ($i=0; $i -lt 5; $i++) { Write-Output $i }
+  while ($condition) { Write-Output "Running" }
+  ```
+
+---
+
+## **5. Functions**
+- **Defining a Function**:
+  ```powershell
+  function My-Function {
+      param ($param1, $param2)
+      Write-Output "Param1 is $param1"
+  }
+  ```
+- **Calling**:
+  ```powershell
+  My-Function -param1 "Value1" -param2 "Value2"
+  ```
+
+---
+
+## **6. File and Directory Operations**
+- **Working with Files**:
+  ```powershell
+  Get-ChildItem -Path C:\         # List files and directories
+  Get-Content -Path file.txt      # Read file content
+  Set-Content -Path file.txt -Value "Text"  # Write to file
+  Add-Content -Path file.txt -Value "More text"  # Append to file
+  ```
+- **File Operations**:
+  ```powershell
+  Copy-Item -Path source.txt -Destination dest.txt
+  Move-Item -Path file.txt -Destination C:\NewFolder
+  Remove-Item -Path file.txt
+  ```
+- **Creating Directories**:
+  ```powershell
+  New-Item -Path C:\Temp -ItemType Directory
+  ```
+
+---
+
+## **7. Working with Processes and Services**
+- **Processes**:
+  ```powershell
+  Get-Process                  # List processes
+  Stop-Process -Name notepad   # Stop a process
+  Start-Process notepad.exe    # Start a process
+  ```
+- **Services**:
+  ```powershell
+  Get-Service                  # List all services
+  Start-Service -Name spooler  # Start a service
+  Stop-Service -Name spooler   # Stop a service
+  ```
+
+---
+
+## **8. Pipelines and Filtering**
+- **Piping**: Pass output of one command to another.
+  ```powershell
+  Get-Process | Where-Object { $_.CPU -gt 10 }   # Filter processes
+  ```
+- **Filtering**:
+  ```powershell
+  Get-ChildItem | Select-Object Name, Length     # Select properties
+  Get-EventLog -LogName Application | Out-File logs.txt
+  ```
+
+---
+
+## **9. Error Handling**
+- **Try-Catch**:
+  ```powershell
+  try {
+      Get-Item nonexistent.txt
+  } catch {
+      Write-Output "Error: $_"
+  }
+  ```
+- **Throwing Errors**:
+  ```powershell
+  throw "An error occurred"
+  ```
+
+---
+
+## **10. Modules**
+- **Managing Modules**:
+  ```powershell
+  Get-Module -ListAvailable    # List available modules
+  Import-Module ModuleName     # Import a module
+  Remove-Module ModuleName     # Remove a module
+  ```
+- **Installing Modules**:
+  ```powershell
+  Install-Module -Name ModuleName -Scope CurrentUser
+  ```
+
+---
+
+## **11. Working with PowerShell Remoting**
+- **Enable Remoting**:
+  ```powershell
+  Enable-PSRemoting -Force
+  ```
+- **Run Commands Remotely**:
+  ```powershell
+  Invoke-Command -ComputerName Server1 -ScriptBlock { Get-Service }
+  ```
+- **Enter a Remote Session**:
+  ```powershell
+  Enter-PSSession -ComputerName Server1
+  ```
+
+---
+
+## **12. PowerShell Scripts**
+- **Creating a Script**:
+  - Save commands in a `.ps1` file.
+- **Running a Script**:
+  ```powershell
+  .\script.ps1
+  ```
+- **Execution Policy**:
+  ```powershell
+  Get-ExecutionPolicy                # Check policy
+  Set-ExecutionPolicy RemoteSigned   # Set policy
+  ```
+
+---
+
+## **13. Useful PowerShell Cmdlets**
+- **System Info**:
+  ```powershell
+  Get-Host                        # PowerShell version and host
+  Get-WmiObject -Class Win32_OperatingSystem  # OS details
+  ```
+- **Networking**:
+  ```powershell
+  Test-Connection google.com       # Ping test
+  Get-NetIPAddress                 # List IP addresses
+  ```
+- **Task Scheduling**:
+  ```powershell
+  Get-ScheduledTask                # List tasks
+  Register-ScheduledTask           # Create a new task
+  ```
+
+---
+
+## **14. PowerShell Profiles**
+- **Location**:
+  ```powershell
+  $PROFILE                      # Path to the profile
+  ```
+- **Editing the Profile**:
+  ```powershell
+  notepad $PROFILE              # Add custom commands/aliases
+  ```
+
+---
+
+These notes cover essential PowerShell concepts and provide a practical foundation for managing tasks efficiently. Let me know if you need more details on specific sections!
